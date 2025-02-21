@@ -1,13 +1,19 @@
-from sklearn.linear_model import LinearRegression
 import pandas as pd
+from sklearn.linear_model import LinearRegression
+import joblib
 
-def entrainer_model(historique):
-    if len(historique) < 10:
-        print("📊 Pas assez de données pour entraîner l'IA...")
-        return None
-    X = historique[["Heure", "Présence"]].values
-    y = historique["Lumens"].values
-    model = LinearRegression()
-    model.fit(X, y)
-    print("🤖 Modèle IA entraîné avec succès !")
-    return model
+df = pd.read_excel('ton_fichier.xlsx')
+
+# Préparer les données (X = features, y = variable cible)
+X = df[['presence', 'saison']]  # Exemple de colonnes à utiliser
+y = df['lumens']  # La colonne cible (luminosité)
+
+# Entraîner le modèle
+modele_lumens = LinearRegression()
+modele_lumens.fit(X, y)
+
+joblib.dump(modele_lumens, 'modele_lumens.pkl')
+
+df['predicted_lumens'] = modele_lumens.predict(X)
+
+df.to_excel('fichier_mis_a_jour.xlsx', index=False)

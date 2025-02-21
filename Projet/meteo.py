@@ -1,18 +1,14 @@
 import requests
+from config import METEO_API_URL, API_WEATHER_KEY
+from utils.logs import log_error, log_info
 
-# Remplace par ton API clé et URL
-API_KEY = "ta_cle_api"
-CITY = "Paris"
-
-def get_weather():
-    url = f"http://api.openweathermap.org/data/2.5/weather?q={CITY}&appid={API_KEY}&units=metric"
-    response = requests.get(url)
-    
-    if response.status_code == 200:
+def obtenir_meteo(ville="Paris"):
+    try:
+        response = requests.get(f"{METEO_API_URL}?q={ville}&appid={API_WEATHER_KEY}&units=metric")
+        response.raise_for_status()
         data = response.json()
-        temperature = data['main']['temp']
-        cloud_coverage = data['clouds']['all']  # En pourcentage de couverture nuageuse
-        return temperature, cloud_coverage
-    else:
-        print("⚠️ Erreur de récupération des données météo")
-        return None, None
+        log_info(f"Météo récupérée avec succès : {data}")
+        return data
+    except requests.exceptions.RequestException as e:
+        log_error(f"Erreur météo : {e}")
+        return None
