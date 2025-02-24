@@ -6,13 +6,16 @@ import json
 from datetime import datetime, timedelta
 import config
 import pandas as pd
+from utils.utils import obtenir_saison  
 
+# Configuration du logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
+logger.setLevel(logging.INFO)  # Activation des logs
 
 log_file = "generate/app.log"
 file_handler = logging.FileHandler(log_file)
-file_handler.setLevel(logging.INFO)
+file_handler.setLevel(logging.INFO)  # Enregistre aussi les logs DEBUG
 file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 file_handler.setFormatter(file_formatter)
 
@@ -38,7 +41,8 @@ def get_weather():
             logger.warning("Données météo manquantes : 'clouds' non trouvé dans la réponse.")
             weather_data['clouds'] = {'all': 0} 
 
-        logger.info(f"Météo récupérée avec succès : {weather_data}")
+        logger.info(f"Meteo récupérée ! ")
+        logger.debug(f"Météo récupérée avec succès : {weather_data}")
         return weather_data
     except requests.exceptions.HTTPError as err:
         logger.error(f"Erreur météo : {err}")
@@ -46,11 +50,12 @@ def get_weather():
 
 # Fonction pour ajuster l'éclairage (dépend de la météo)
 def adjust_lighting(presence, model, weather_data):
-    saison = datetime.now().month  
+    saison = obtenir_saison()  # Utilisation de la fonction correcte
     nuages = weather_data['clouds']['all']  
     lumens = model.predict([[presence, saison, nuages]]) if model else 200 
     current_hour = datetime.now().hour  
-    logger.info(f"Ajustement lumière - Heure : {current_hour}h | Présence : {presence} | Saison : {'hiver' if saison in range(12, 3) else 'été'} | Nuages : {nuages}% | Lumens : {lumens}")
+
+    logger.info(f"Ajustement lumière - Heure : {current_hour}h | Présence : {presence} | Saison : {saison} | Nuages : {nuages}% | Lumens : {lumens}")
     return lumens
 
 def main():
@@ -60,7 +65,7 @@ def main():
     while True:
         # Log de l'heure avant chaque boucle pour vérifier que l'heure change
         current_time = datetime.now().strftime("%H:%M:%S")
-        logger.info(f"Heure actuelle avant traitement : {current_time}")
+        logger.debug(f"Heure actuelle avant traitement : {current_time}")
 
         if should_fetch_weather(last_fetch_date):
             weather_data = get_weather()
