@@ -31,11 +31,40 @@ Clonez ce repository et installez les dépendances :
 ```bash 
 git clone <url_du_repertoire>
 cd <nom_du_repertoire>
+```
+
+Créez un environnement virtuel 
+
+Il est recommandé de créer un environnement virtuel pour isoler les dépendances du projet. Pour ce faire, utilisez les commandes suivantes :
+
+Si vous utilisez venv :
+
+```bash 
+python3 -m venv venv
+```
+
+Ensuite, activez l'environnement virtuel :
+
+```bash 
+source venv/bin/activate
+```
+Cela permet de travailler dans un environnement isolé, garantissant que les dépendances n'entrent pas en conflit avec d'autres projets.
+
+```bash 
 pip install -r requirements.txt
-``` 
+```
+
 ## Utilisation
+
 # Lancer le programme
-Pour lancer le programme, exécutez le fichier main.py :
+
+Il est important d'entrainer le modéle IA avant de lancer main.py : 
+
+```bash
+python3 training.py
+```
+
+Ensuite exécutez le fichier main.py : 
 
 ```bash
 python3 main.py
