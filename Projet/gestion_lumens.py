@@ -1,44 +1,28 @@
-import pandas as pd
+import joblib
+import sys
 import os
-import joblib  # Import de joblib pour charger le modèle
-from utils.utils import obtenir_saison
-from utils.logs import log_info
+from utils.logger import log_info, log_error
 
-fichier_donnees = "historique_lumens.csv"
-historique = pd.read_csv(fichier_donnees) if os.path.exists(fichier_donnees) else pd.DataFrame(columns=["Heure", "Présence", "Lumens", "Saison"])
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Charger le modèle
-modele_lumens = joblib.load('modele_lumens.pkl')
+model_path = os.path.join("generate", "modele_lumens.pkl")
+if not os.path.exists(model_path):
+    log_error(f"Le fichier {model_path} est introuvable. Lance `training.py` pour l'entraîner.")
+    raise FileNotFoundError(f"Le fichier {model_path} est introuvable. Lance `training.py` pour l'entraîner.")
 
-def ajuster_lumens(presence, modele_lumens):
-    """
-    Ajuste les lumens en fonction de la présence, de la saison et du modèle de prédiction.
+modele_lumens = joblib.load(model_path)
+log_info("Modèle chargé avec succès.")
 
-    Args:
-        presence (int): 1 si une personne est présente, 0 sinon.
-        modele_lumens: Le modèle de prédiction des lumens.
-
-    Returns:
-        int: La valeur des lumens ajustée.
-    """
-    saison = obtenir_saison()
-
-    if isinstance(saison, str):
-        saison_mapping = {"hiver": 0, "printemps": 1, "été": 2, "automne": 3}
-        saison = saison_mapping.get(saison, 0)  # On attribue une valeur numérique à la saison
-        data = pd.DataFrame([[presence, saison]], columns=["Présence", "Saison"])
-    
-    # Utilisation du modèle pour prédire les lumens
-    if modele_lumens:
-        lumens = modele_lumens.predict(data)[0]  # Récupérer la première prédiction (modèle de régression)
-    else:
-        lumens = 0  # Valeur par défaut si pas de modèle
-
-    # Log de l'ajustement des lumens
-    log_info(f"Ajustement des lumières: {lumens} lumens pour la saison {saison}")
-
-    # Enregistrer dans l'historique
-    historique.loc[len(historique)] = [pd.Timestamp.now(), presence, lumens, saison]
-    historique.to_csv(fichier_donnees, index=False)
-
-    return lumens
+def ajuster_lumens(presence, saison):
+    """ Prédit la luminosité idéale en fonction de la présence et de la saison. """
+    try:
+        saison_encoded = ["hiver", "printemps", "été", "automne"].index(saison)  # Encode la saison
+        prediction = modele_lumens.predict([[presence, saison_encoded]])[0]
+        lumens = max(0, int(prediction))  # Évite les valeurs négatives
+        
+        log_info(f"Prédiction : Présence={presence}, Saison={saison}, Lumens={lumens}")
+        return lumens
+    except Exception as e:
+        log_error(f"Erreur dans ajuster_lumens : {e}")
+        return 0
