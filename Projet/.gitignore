@@ -4,6 +4,7 @@ generate/
 venv/
 __pycache__/
 /__pycache__/
+.~lock.fichier_output_with_predictions.xlsx
 *.pyc
 *.pyo
 .vscode/
