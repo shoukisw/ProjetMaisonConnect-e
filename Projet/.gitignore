@@ -1,6 +1,5 @@
 generate/
 *.log
-*.xlsx
 venv/
 __pycache__/
 /__pycache__/
